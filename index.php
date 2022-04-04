@@ -1,5 +1,8 @@
+<?php
+	require_once "lib.php";
+?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <title>!</title>
