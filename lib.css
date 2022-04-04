@@ -1,0 +1,309 @@
+/*
+This file contains:
+  - The basic css variables for the webite colors
+  - The styling for the navbar (WITH PREFIX nav-)
+  - The app's styling for inputs, buttons, links, WITH CLASSNAMES associated (which means that instead of just using input {<style here>}, you would do input.input {<style here>}; this is very important
+  - Sliders' style, cause they are better than simple checkboxes
+*/
+
+:root {
+    --primary-text-color: #1a1110;
+    --secondary-text-color: #6e7379;
+    --accent-color: #4062BB;
+    --accent-color-hover: #3857a6;
+    --accent-color-active: #2e498c;
+    --bccent-color: #59c3c3;
+    --bccent-color-hover: #4ca8a8;
+    --bccent-color-active: #449696;
+    --primary-color: #ebebeb;
+    --primary-color-hover: #d6d6d6;
+    --primary-color-active: #b5b5b5;
+    --secondary-color: #f0f0f0;
+    --secondary-color-hover: #ddd;
+    --secondary-color-hover-2: #c2c2c2;
+    --secondary-color-active: #a3a3a3;
+}
+
+a, abbr, acronym, address, applet, big, blockquote, body, caption, cite, code, dd, del, dfn, div, dl, dt, em, fieldset, form, h1, h2, h3, h4, h5, h6, html, iframe, img, ins, kbd, label, legend, li, object, ol, p, pre, q, s, samp, small, span, strike, strong, table, tbody, td, tfoot, th, thead, tr, tt, ul, var {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-weight: inherit;
+    font-style: inherit;
+    font-family: inherit;
+    font-size: 100%;
+    vertical-align: baseline;
+}
+
+a {
+    text-decoration: none;
+}
+    /* a:visited {color: initial;} */
+
+    p.accent, a.accent {
+        color: var(--accent-color);
+    }
+
+        a.accent:hover {
+            color: var(--accent-color-hover);
+        }
+
+*:focus {
+    outline: none;
+}
+
+.flex-container {
+    display: -webkit-flex;
+    display: flex;
+}
+
+body {
+    color: var(--primary-text-color);
+    /* font-family: Verdana, Geneva, Tahoma, sans-serif; */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/*===============================
+============ NAV BAR ============
+================================= */
+.nav-container {
+    /* height: 65px; */
+    z-index: 5;
+    /* padding: 16px; */
+    padding: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    user-select: none;
+    background-color: var(--secondary-color);
+    display: -webkit-flex;
+    display: flex;
+    /* align-items: center; */
+    flex-direction: row;
+}
+
+.nav-hoverable {
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+    .nav-hoverable:hover {
+        background-color: var(--secondary-color-hover);
+    }
+
+.nav-item {
+    display: -webkit-flex;
+    display: flex;
+    margin-right: 16px;
+    align-self: stretch;
+    align-items: center;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+}
+
+.nav-container > .nav-item:last-child {
+    margin-right: 0;
+}
+
+.nav-logo {
+    height: 32px;
+}
+
+.nav-item-full {
+    width: 100% !important;
+    flex-direction: row;
+    -webkit-flex: auto;
+    flex: auto;
+}
+
+.nav-link {
+    color: var(--accent-color);
+    font-weight: 600;
+    white-space: nowrap;
+    user-select: none;
+}
+
+    .nav-link:hover {
+        color: var(--accent-color-hover);
+    }
+
+    .nav-link:active {
+        color: var(--accent-color-active);
+    }
+
+.nav-add-button-container {
+    color: var(--primary-text-color);
+    /* padding: 13px; */
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+    .nav-add-button-container ion-icon {
+        font-size: 20px;
+    }
+
+    .nav-add-button-container > div {
+        padding: 13px;
+        padding-right: 8px;
+    }
+
+    .nav-add-button-container span {
+        font-size: 14px;
+        white-space: nowrap;
+        margin-right: 8px;
+        font-weight: 600;
+        margin-top: -2px;
+    }
+
+    .nav-add-button-container:hover {
+        color: #30201f;
+    }
+
+.nav-profile-container {
+    background-color: var(--secondary-color);
+    padding: 8px;
+    border: 1px var(--secondary-text-color) solid;
+    width: fit-content;
+}
+
+.nav-profile-image {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.nav-profile-name {
+    font-weight: 500;
+    margin-right: 4px;
+}
+
+
+@media only screen and (min-width: 770px) {
+    .nav-container {
+        padding-left: 24px;
+        padding-right: 10px;
+    }
+}
+
+.nav-menu-button {
+    font-size: 25px;
+    padding: 12px;
+    margin-right: 8px; /* to make sur it is 57 px wide, exactly like the nav-verti-completer on the other side */
+    display: -webkit-flex;
+    display: flex;
+}
+
+.nav-verti-completer {
+    width: 57px !important;
+    display: -webkit-flex;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+}
+
+    .nav-verti-completer .nav-verti-profile-image {
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        margin-right: 5px;
+    }
+
+.nav-verti-signup-icon {
+    font-size: 15px;
+    margin-right: 2px;
+    margin-top: 1px;
+    --ionicon-stroke-width: 44px;
+}
+
+.nav-profile-dropdown {
+    display: none;
+    position: absolute;
+    width: 100%;
+    max-width: 120px;
+    flex-direction: column;
+    padding: 13px;
+    border-radius: 15px;
+    border: 1px var(--primary-text-color) solid;
+    z-index: 10;
+    background-color: var(--secondary-color-hover);
+    user-select: none;
+}
+
+    .nav-profile-dropdown.open {
+        display: -webkit-flex;
+        display: flex;
+    }
+
+.nav-profile-dropdown-item {
+    padding: 5px 0 5px 0;
+    border-style: solid;
+    border-top-width: 1px;
+    border-color: var(--secondary-text-color);
+    cursor: pointer;
+}
+
+    .nav-profile-dropdown-item:first-child {
+        border-top-width: 0;
+    }
+
+    .nav-profile-dropdown-item:hover {
+        background-color: var(--secondary-color-hover-2);
+    }
+
+    .nav-profile-dropdown-item:active {
+        background-color: var(--secondary-color-active);
+    }
+
+    .nav-profile-dropdown-item > ion-icon {
+        margin-bottom: -2px;
+        margin-right: 2px;
+    }
+
+
+@media only screen and (min-width: 551px) {
+    .nav-verti {
+        display: none !important;
+    }
+}
+
+@media only screen and (max-width: 550px) {
+    /* Make Nav-bar vertical */
+    .nav-hori {
+        display: none !important;
+    }
+
+    .nav-item {
+        margin-right: 0;
+    }
+
+    .nav-container {
+        flex-direction: column;
+    }
+
+    .nav-item-full {
+        flex-direction: column;
+        margin-right: 0;
+        display: none;
+    }
+
+    .nav-container.open .nav-item-full {
+        display: inherit;
+    }
+
+    .nav-item-full .nav-item {
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        border-width: 1px 0 0px 0;
+        border-color: var(--secondary-color-hover);
+        border-style: solid;
+        padding: 7px 0;
+    }
+
+    .nav-logo-container {
+        flex: auto;
+        justify-content: center;
+        align-items: center;
+    }
+}

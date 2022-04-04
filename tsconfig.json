@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "ES5",
+    "module": "none",
+    "sourceMap": true,
+    "composite": true,
+    "removeComments": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "paths": {},
+    "esModuleInterop": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "listEmittedFiles": true,
+    "noEmit": false,
+    "noEmitOnError": true,
+    "types": ["@types"],
+    "lib": [
+      "ES5",
+      "DOM",
+      "ES2016.array.include",
+      "ES2019.string",
+      "ES2019.array",
+      "ES2019.object",
+      "ES2015.Promise"
+    ]
+    /*"moduleDetection": "force",*/
+  },
+  "exclude": [
+    "node_modules",
+    ".build",
+    "nix",
+    "**/polyfill.ts",
+    "wwwroot"
+  ]
+}
