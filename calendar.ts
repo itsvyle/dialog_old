@@ -22,8 +22,8 @@ class Calendar {
     timeFormat: "12h" | "24h";
 
     startOfWeekTimestamp: number;
-    minTimestamp: number;
-    maxTimestamp: number;
+    minTimestamp?: number;
+    maxTimestamp?: number; 
 
     private events: CCalEvent[] = [];
 
@@ -41,11 +41,7 @@ class Calendar {
         const par = this;
         window.addEventListener("resize", function (event) { par.width = (<HTMLDivElement>par.container.getElementsByClassName("cal-content")[0]).offsetWidth; });
         
-        let d = moment().startOf('isoWeek');
-        this.startOfWeekTimestamp = d.valueOf();
-
-        
-        
+        this.startOfWeekTimestamp = moment().startOf('isoWeek').tz("America/New_York").valueOf();
 
         if (this.viewMode == "columns") {
             this.minTimestamp = this.startOfWeekTimestamp + this.timeMin;
@@ -129,9 +125,9 @@ class Calendar {
 interface CalEvent {
     id: string|null;
     name: string;
-    startDate: string;
-    endDate: string;
-    backgroundColor: string;
+    startDateString: string;
+    endDateString: string;
+    backgroundColor: string | "auto";
     textColor?: string;
 }
 
@@ -139,41 +135,46 @@ class CCalEvent implements CalEvent {
     id: string | null;
     startTimestamp: number;
     endTimestamp: number;
-    startDate: string;
-    endDate: string;
+    startDateString: string;
+    endDateString: string;
+    startDate: moment.Moment;
+    endDate: moment.Moment;
     name: string;
-    backgroundColor: string;
+    backgroundColor: string | "auto";
     textColor: string | undefined;
 
-    durationSeconds: number;
-    displayTop: number;
-    displayBottom: number;
+    durationSeconds?: number;
+    displayTop?: number;
+    displayBottom?: number;
     private specialClass: "cut-bottom" | "cut-top" | undefined;
 
     constructor(options: CalEvent) {
         this.id = options.id;
-        this.startDate = options.startDate;
-        this.endDate = options.endDate;
-        this.startTimestamp = gm.toTimeZone(new Date(this.startDate),"America/New_York").getTime();
-        this.endTimestamp = gm.toTimeZone(new Date(this.endDate), "America/New_York").getTime();
+        this.startDateString = options.startDateString;
+        this.endDateString = options.endDateString;
+        this.startDate = moment(this.startDateString).tz("America/New_York");
+        this.endDate = moment(this.endDateString).tz("America/New_York");
+        this.startTimestamp = this.startDate.valueOf();
+        this.endTimestamp = this.endDate.valueOf();
         this.name = options.name;
         this.backgroundColor = options.backgroundColor;
+        this.textColor = options.textColor || "inherit";
         this.durationSeconds = (this.endTimestamp - this.startTimestamp) / 1000;
         
     }
 
     initialize(cal: Calendar): boolean {
         if (
-            (this.startTimestamp < cal.minTimestamp && this.endTimestamp < cal.minTimestamp) ||
-            (this.startTimestamp > cal.maxTimestamp) || this.endTimestamp < cal.minTimestamp
+            (this.startTimestamp < cal.minTimestamp! && this.endTimestamp < cal.minTimestamp!) ||
+            (this.startTimestamp > cal.maxTimestamp!) || this.endTimestamp < cal.minTimestamp!
         ) {
             return false;
         }
-        let n = this.startTimestamp % 86400000;
+        let n = (this.startTimestamp % 86400000) + moment.TzUtcOffset;
         if (n > cal.timeMax) {
             return false;
         }
-        n = this.endTimestamp % 86400000;
+        n = (this.endTimestamp % 86400000) + moment.TzUtcOffset;
         if (n < cal.timeMin) {
             return false;
         }
@@ -192,10 +193,11 @@ window.addEventListener("load", function (event) {
         timeIntervalMinutes: 5
     });
 });
-const testEvent: CalEvent = {
+const testEvent_: CalEvent = {
     id: "test",
-    startDate: (new Date(2022,3,6,21,30)).toISOString(),
-    endDate: (new Date(2022, 3, 6, 21, 45)).toISOString(),
+    startDateString: moment("2022-04-07 15:30:00").toISOString(),
+    endDateString: moment("2022-04-07 15:45:00").toISOString(),
     name: "Test Event !",
     backgroundColor: "orange"
 };
+var testEvent = new CCalEvent(testEvent_);

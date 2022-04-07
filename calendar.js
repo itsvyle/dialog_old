@@ -15,8 +15,7 @@ var Calendar = /** @class */ (function () {
         this.oneMinute = this.height / (this.duration / 60000);
         var par = this;
         window.addEventListener("resize", function (event) { par.width = par.container.getElementsByClassName("cal-content")[0].offsetWidth; });
-        var d = moment().startOf('isoWeek');
-        this.startOfWeekTimestamp = d.valueOf();
+        this.startOfWeekTimestamp = moment().startOf('isoWeek').tz("America/New_York").valueOf();
         if (this.viewMode == "columns") {
             this.minTimestamp = this.startOfWeekTimestamp + this.timeMin;
             this.maxTimestamp = this.startOfWeekTimestamp + (4 * 86400000) + this.timeMax;
@@ -92,12 +91,15 @@ var Calendar = /** @class */ (function () {
 var CCalEvent = /** @class */ (function () {
     function CCalEvent(options) {
         this.id = options.id;
-        this.startDate = options.startDate;
-        this.endDate = options.endDate;
-        this.startTimestamp = gm.toTimeZone(new Date(this.startDate), "America/New_York").getTime();
-        this.endTimestamp = gm.toTimeZone(new Date(this.endDate), "America/New_York").getTime();
+        this.startDateString = options.startDateString;
+        this.endDateString = options.endDateString;
+        this.startDate = moment(this.startDateString).tz("America/New_York");
+        this.endDate = moment(this.endDateString).tz("America/New_York");
+        this.startTimestamp = this.startDate.valueOf();
+        this.endTimestamp = this.endDate.valueOf();
         this.name = options.name;
         this.backgroundColor = options.backgroundColor;
+        this.textColor = options.textColor || "inherit";
         this.durationSeconds = (this.endTimestamp - this.startTimestamp) / 1000;
     }
     CCalEvent.prototype.initialize = function (cal) {
@@ -105,11 +107,11 @@ var CCalEvent = /** @class */ (function () {
             (this.startTimestamp > cal.maxTimestamp) || this.endTimestamp < cal.minTimestamp) {
             return false;
         }
-        var n = this.startTimestamp % 86400000;
+        var n = (this.startTimestamp % 86400000) + moment.TzUtcOffset;
         if (n > cal.timeMax) {
             return false;
         }
-        n = this.endTimestamp % 86400000;
+        n = (this.endTimestamp % 86400000) + moment.TzUtcOffset;
         if (n < cal.timeMin) {
             return false;
         }
@@ -127,11 +129,12 @@ window.addEventListener("load", function (event) {
         timeIntervalMinutes: 5
     });
 });
-var testEvent = {
+var testEvent_ = {
     id: "test",
-    startDate: (new Date(2022, 3, 6, 21, 30)).toISOString(),
-    endDate: (new Date(2022, 3, 6, 21, 45)).toISOString(),
+    startDateString: moment("2022-04-07 15:30:00").toISOString(),
+    endDateString: moment("2022-04-07 15:45:00").toISOString(),
     name: "Test Event !",
     backgroundColor: "orange"
 };
+var testEvent = new CCalEvent(testEvent_);
 //# sourceMappingURL=calendar.js.map

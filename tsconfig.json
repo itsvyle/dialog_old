@@ -16,7 +16,8 @@
     "listEmittedFiles": true,
     "noEmit": false,
     "noEmitOnError": true,
-    "types": ["@types"],
+    "checkJs": false,
+    "types": [ "@types" ],
     "lib": [
       "ES5",
       "DOM",
