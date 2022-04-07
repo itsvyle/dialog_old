@@ -1,6 +1,10 @@
+var CalendarColumnTimeWidth = 45;
 var Calendar = /** @class */ (function () {
     function Calendar(opts) {
         this.viewMode = "columns";
+        this.events = [];
+        this.timeFormat = opts.timeFormat || "24h";
+        this.viewMode = opts.viewMode || "columns";
         this.container = opts.container;
         this.height = opts.height;
         this.width = this.container.offsetWidth;
@@ -10,17 +14,39 @@ var Calendar = /** @class */ (function () {
         this.duration = this.timeMax - this.timeMin;
         this.oneMinute = this.height / (this.duration / 60000);
         var par = this;
-        window.addEventListener("resize", function (event) { par.width = par.container.offsetWidth; });
+        window.addEventListener("resize", function (event) { par.width = par.container.getElementsByClassName("cal-content")[0].offsetWidth; });
+        var d = moment().startOf('isoWeek');
+        this.startOfWeekTimestamp = d.valueOf();
+        if (this.viewMode == "columns") {
+            this.minTimestamp = this.startOfWeekTimestamp + this.timeMin;
+            this.maxTimestamp = this.startOfWeekTimestamp + (4 * 86400000) + this.timeMax;
+        }
+        //let prevMonday = new Date(utc.toUTCString());
+        //console.log(prevMonday);
+        //prevMonday.setDate(prevMonday.getDate() - (prevMonday.getDay() + 6) % 7);
+        //this.currentTimestamp = prevMonday.getTime();
         this.generateTimes();
         this.refreshView();
     }
+    Calendar.prototype.addEvent = function (e) {
+        if (e.initialize(this)) {
+            this.events.push(e);
+            return true;
+        }
+        return false;
+    };
+    Calendar.prototype.timeString = function (hours, minutes) {
+        return (this.timeFormat == "24h")
+            ? "".concat((hours < 10) ? ("0" + String(hours)) : hours, ":").concat((minutes < 10) ? ("0" + String(minutes)) : minutes)
+            : "".concat(hours % 12, ":").concat((minutes < 10) ? ("0" + String(minutes)) : minutes, " ").concat((hours < 12) ? "AM" : "PM");
+    };
     Calendar.prototype.generateTimes = function () {
         this.container.classList.add("cal-mode-columns");
         var container = this.container.getElementsByClassName("cal-column-times")[0];
         var content = this.container.getElementsByClassName("cal-column-content")[0];
         var laps = Math.floor(this.duration / (this.timeIntervalMinutes * 60000)) + 1;
         var minute = this.timeMin / 60000;
-        var itemHeightCompensation, itemHeight;
+        var itemHeightCompensation = 0, itemHeight = -1;
         for (var i = 0; i < laps; i++) {
             var hour = Math.floor(minute / 60);
             var minu = Math.abs(minute - hour * 60);
@@ -28,7 +54,7 @@ var Calendar = /** @class */ (function () {
             if (!itemHeightCompensation) {
                 var p = gm.newItem("p", {
                     className: "cal-time",
-                    innerText: "".concat((hour < 10) ? ("0" + String(hour)) : hour, ":").concat((minu < 10) ? ("0" + String(minu)) : minu)
+                    innerText: this.timeString(hour, minu)
                 }, container);
                 itemHeight = p.offsetHeight;
                 itemHeightCompensation = itemHeight / laps;
@@ -39,7 +65,7 @@ var Calendar = /** @class */ (function () {
                 top_1 = (i * this.timeIntervalMinutes * this.oneMinute) - i * itemHeightCompensation;
                 gm.newItem("p", {
                     className: "cal-time",
-                    innerText: "".concat((hour < 10) ? ("0" + String(hour)) : hour, ":").concat((minu < 10) ? ("0" + String(minu)) : minu),
+                    innerText: this.timeString(hour, minu),
                     style: "top: ".concat(top_1, "px;")
                 }, container);
             }
@@ -57,11 +83,39 @@ var Calendar = /** @class */ (function () {
         if (this.viewMode == "list") {
             this.container.classList.remove("cal-mode-columns");
         }
-        else {
+        else if (this.viewMode == "columns") {
             this.container.classList.add("cal-mode-columns");
         }
     };
     return Calendar;
+}());
+var CCalEvent = /** @class */ (function () {
+    function CCalEvent(options) {
+        this.id = options.id;
+        this.startDate = options.startDate;
+        this.endDate = options.endDate;
+        this.startTimestamp = gm.toTimeZone(new Date(this.startDate), "America/New_York").getTime();
+        this.endTimestamp = gm.toTimeZone(new Date(this.endDate), "America/New_York").getTime();
+        this.name = options.name;
+        this.backgroundColor = options.backgroundColor;
+        this.durationSeconds = (this.endTimestamp - this.startTimestamp) / 1000;
+    }
+    CCalEvent.prototype.initialize = function (cal) {
+        if ((this.startTimestamp < cal.minTimestamp && this.endTimestamp < cal.minTimestamp) ||
+            (this.startTimestamp > cal.maxTimestamp) || this.endTimestamp < cal.minTimestamp) {
+            return false;
+        }
+        var n = this.startTimestamp % 86400000;
+        if (n > cal.timeMax) {
+            return false;
+        }
+        n = this.endTimestamp % 86400000;
+        if (n < cal.timeMin) {
+            return false;
+        }
+        return true;
+    };
+    return CCalEvent;
 }());
 var cal;
 window.addEventListener("load", function (event) {
@@ -73,4 +127,11 @@ window.addEventListener("load", function (event) {
         timeIntervalMinutes: 5
     });
 });
+var testEvent = {
+    id: "test",
+    startDate: (new Date(2022, 3, 6, 21, 30)).toISOString(),
+    endDate: (new Date(2022, 3, 6, 21, 45)).toISOString(),
+    name: "Test Event !",
+    backgroundColor: "orange"
+};
 //# sourceMappingURL=calendar.js.map

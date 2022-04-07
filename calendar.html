@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>!</title>
+    <title>Calendar Tests!</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="file:///C:/VBData 2019/Dialog/Dialog">
+    <script src="Dialog/modules/moment.js" type="text/javascript"></script>
     <!-- Lib: import first -->
     <script src="Dialog/lib.js" type="application/javascript"></script>
     <link href="Dialog/lib.css" rel="stylesheet">
@@ -47,11 +48,13 @@
             <ion-icon name="chevron-down-outline"></ion-icon>
         </div>
     </div>
-
+    <br>
     <div id="main-calendar" class="cal-container main-calendar">
-        <div class="cal-view-columns">
-            <div class="cal-column-times"></div>
-            <div class="cal-column-content"></div>
+        <div class="cal-content">
+            <div class="cal-view-columns">
+                <div class="cal-column-times"></div>
+                <div class="cal-column-content"></div>
+            </div>
         </div>
     </div>
 

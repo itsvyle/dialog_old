@@ -570,6 +570,9 @@ var gm = new /** @class */ (function () {
     class_1.prototype.classes = function (node) {
         return new GMClasses(node);
     };
+    class_1.prototype.toTimeZone = function (date, tzString) {
+        return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
+    };
     class_1.prototype.CSVToArray = function (strData, strDelimiter) {
         // source: https://stackoverflow.com/questions/1293147/example-javascript-code-to-parse-csv-data
         strDelimiter = (strDelimiter || ",");

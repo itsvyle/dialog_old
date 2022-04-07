@@ -33,6 +33,7 @@
     ".build",
     "nix",
     "**/polyfill.ts",
-    "wwwroot"
+    "wwwroot",
+    "lib"
   ]
 }

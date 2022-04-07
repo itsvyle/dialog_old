@@ -5,7 +5,10 @@ type CalendarCreationOptions = {
     timeMax: number;
     timeIntervalMinutes: number;
     timesFontSize?: number;
+    timeFormat?: "12h" | "24h";
+    viewMode?: "list" | "columns";
 };
+const CalendarColumnTimeWidth = 45;
 class Calendar {
     container: HTMLDivElement;
     height: number;
@@ -16,8 +19,17 @@ class Calendar {
     duration: number;
     timeIntervalMinutes: number;
     viewMode: "list" | "columns" = "columns";
+    timeFormat: "12h" | "24h";
+
+    startOfWeekTimestamp: number;
+    minTimestamp: number;
+    maxTimestamp: number;
+
+    private events: CCalEvent[] = [];
 
     constructor(opts: CalendarCreationOptions) {
+        this.timeFormat = opts.timeFormat || "24h";
+        this.viewMode = opts.viewMode || "columns";
         this.container = opts.container;
         this.height = opts.height;
         this.width = this.container.offsetWidth;
@@ -27,10 +39,41 @@ class Calendar {
         this.duration = this.timeMax - this.timeMin;
         this.oneMinute = this.height / (this.duration / 60000);
         const par = this;
-        window.addEventListener("resize", function (event) { par.width = par.container.offsetWidth; });
+        window.addEventListener("resize", function (event) { par.width = (<HTMLDivElement>par.container.getElementsByClassName("cal-content")[0]).offsetWidth; });
+        
+        let d = moment().startOf('isoWeek');
+        this.startOfWeekTimestamp = d.valueOf();
+
+        
+        
+
+        if (this.viewMode == "columns") {
+            this.minTimestamp = this.startOfWeekTimestamp + this.timeMin;
+            this.maxTimestamp = this.startOfWeekTimestamp + (4 * 86400000) + this.timeMax;
+        }
+        //let prevMonday = new Date(utc.toUTCString());
+        //console.log(prevMonday);
+        //prevMonday.setDate(prevMonday.getDate() - (prevMonday.getDay() + 6) % 7);
+        //this.currentTimestamp = prevMonday.getTime();
+
 
         this.generateTimes();
         this.refreshView();
+
+    }
+
+    addEvent(e: CCalEvent): boolean {
+        if (e.initialize(this)) {
+            this.events.push(e);
+            return true;
+        }
+        return false;
+    }
+
+    private timeString(hours: number, minutes: number) {
+        return (this.timeFormat == "24h")
+            ? `${(hours < 10) ? ("0" + String(hours)) : hours}:${(minutes < 10) ? ("0" + String(minutes)) : minutes}`
+            : `${hours%12}:${(minutes < 10) ? ("0" + String(minutes)) : minutes} ${(hours<12) ? "AM" : "PM"}`;
     }
 
     private generateTimes() {
@@ -39,7 +82,7 @@ class Calendar {
         const content = this.container.getElementsByClassName("cal-column-content")[0] as HTMLDivElement;
         let laps = Math.floor(this.duration / (this.timeIntervalMinutes * 60000)) + 1;
         let minute = this.timeMin / 60000;
-        let itemHeightCompensation: number,itemHeight: number;
+        var itemHeightCompensation: number = 0,itemHeight: number = -1;
         for (let i = 0; i < laps; i++) {
             let hour = Math.floor(minute / 60);
             let minu = Math.abs(minute - hour * 60);
@@ -47,7 +90,7 @@ class Calendar {
             if (!itemHeightCompensation) {
                 let p = gm.newItem("p", {
                     className: "cal-time",
-                    innerText: `${(hour < 10) ? ("0" + String(hour)) : hour}:${(minu < 10) ? ("0" + String(minu)) : minu}`
+                    innerText: this.timeString(hour, minu)
                 }, container) as HTMLParagraphElement;
                 itemHeight = p.offsetHeight;
                 itemHeightCompensation = itemHeight / laps;
@@ -57,7 +100,7 @@ class Calendar {
                 top = (i * this.timeIntervalMinutes * this.oneMinute) - i * itemHeightCompensation;
                 gm.newItem("p", {
                     className: "cal-time",
-                    innerText: `${(hour < 10) ? ("0" + String(hour)) : hour}:${(minu < 10) ? ("0" + String(minu)) : minu}`,
+                    innerText: this.timeString(hour, minu),
                     style: `top: ${top}px;`
                 }, container);
             }
@@ -76,10 +119,67 @@ class Calendar {
     refreshView() {
         if (this.viewMode == "list") {
             this.container.classList.remove("cal-mode-columns");
-        } else {
+        } else if (this.viewMode == "columns") {
             this.container.classList.add("cal-mode-columns");
+
         }
     }
+}
+
+interface CalEvent {
+    id: string|null;
+    name: string;
+    startDate: string;
+    endDate: string;
+    backgroundColor: string;
+    textColor?: string;
+}
+
+class CCalEvent implements CalEvent {
+    id: string | null;
+    startTimestamp: number;
+    endTimestamp: number;
+    startDate: string;
+    endDate: string;
+    name: string;
+    backgroundColor: string;
+    textColor: string | undefined;
+
+    durationSeconds: number;
+    displayTop: number;
+    displayBottom: number;
+    private specialClass: "cut-bottom" | "cut-top" | undefined;
+
+    constructor(options: CalEvent) {
+        this.id = options.id;
+        this.startDate = options.startDate;
+        this.endDate = options.endDate;
+        this.startTimestamp = gm.toTimeZone(new Date(this.startDate),"America/New_York").getTime();
+        this.endTimestamp = gm.toTimeZone(new Date(this.endDate), "America/New_York").getTime();
+        this.name = options.name;
+        this.backgroundColor = options.backgroundColor;
+        this.durationSeconds = (this.endTimestamp - this.startTimestamp) / 1000;
+        
+    }
+
+    initialize(cal: Calendar): boolean {
+        if (
+            (this.startTimestamp < cal.minTimestamp && this.endTimestamp < cal.minTimestamp) ||
+            (this.startTimestamp > cal.maxTimestamp) || this.endTimestamp < cal.minTimestamp
+        ) {
+            return false;
+        }
+        let n = this.startTimestamp % 86400000;
+        if (n > cal.timeMax) {
+            return false;
+        }
+        n = this.endTimestamp % 86400000;
+        if (n < cal.timeMin) {
+            return false;
+        }
+        return true;
+    }
+
 }
 
 var cal: Calendar;
@@ -92,3 +192,10 @@ window.addEventListener("load", function (event) {
         timeIntervalMinutes: 5
     });
 });
+const testEvent: CalEvent = {
+    id: "test",
+    startDate: (new Date(2022,3,6,21,30)).toISOString(),
+    endDate: (new Date(2022, 3, 6, 21, 45)).toISOString(),
+    name: "Test Event !",
+    backgroundColor: "orange"
+};

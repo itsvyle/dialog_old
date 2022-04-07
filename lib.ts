@@ -566,6 +566,10 @@ const gm = new class {
         return new GMClasses(node);
     }
 
+    toTimeZone(date: string | Date, tzString) {
+        return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
+    }
+
     CSVToArray(strData, strDelimiter) {
         // source: https://stackoverflow.com/questions/1293147/example-javascript-code-to-parse-csv-data
         strDelimiter = (strDelimiter || ",");
