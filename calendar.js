@@ -139,6 +139,7 @@ window.addEventListener("load", function (event) {
         timeMax: (16 * 3600 * 1000) + (5 * 60 * 1000),
         timeIntervalMinutes: 5
     });
+    cal.addEvent(testEvent);
 });
 var testEvent_ = {
     id: "test",
