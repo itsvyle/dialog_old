@@ -1,4 +1,4 @@
-var CalendarColumnTimeWidth = 45;
+var CalendarColumnTimeWidth = 45; //Width 45px
 var Calendar = /** @class */ (function () {
     function Calendar(opts) {
         this.viewMode = "columns";
@@ -7,12 +7,12 @@ var Calendar = /** @class */ (function () {
         this.viewMode = opts.viewMode || "columns";
         this.container = opts.container;
         this.height = opts.height;
-        this.width = this.container.offsetWidth;
+        this.width = this.container.getElementsByClassName("cal-content")[0].offsetWidth;
         this.timeMin = opts.timeMin;
         this.timeMax = opts.timeMax;
         this.timeIntervalMinutes = opts.timeIntervalMinutes;
         this.duration = this.timeMax - this.timeMin;
-        this.oneMinute = this.height / (this.duration / 60000);
+        this.oneMinuteHeight = this.height / (this.duration / 60000);
         var par = this;
         window.addEventListener("resize", function (event) { par.width = par.container.getElementsByClassName("cal-content")[0].offsetWidth; });
         this.startOfWeekTimestamp = moment().startOf('isoWeek').tz("America/New_York").valueOf();
@@ -28,10 +28,7 @@ var Calendar = /** @class */ (function () {
         this.refreshView();
     }
     Calendar.prototype.addEvent = function (e) {
-        if (e.initialize(this)) {
-            this.events.push(e);
-            return true;
-        }
+        this.events.push(e);
         return false;
     };
     Calendar.prototype.timeString = function (hours, minutes) {
@@ -57,11 +54,11 @@ var Calendar = /** @class */ (function () {
                 }, container);
                 itemHeight = p.offsetHeight;
                 itemHeightCompensation = itemHeight / laps;
-                top_1 = (i * this.timeIntervalMinutes * this.oneMinute) - i * itemHeightCompensation;
+                top_1 = (i * this.timeIntervalMinutes * this.oneMinuteHeight) - i * itemHeightCompensation;
                 p.setAttribute("style", "top: ".concat(top_1, "px;"));
             }
             else {
-                top_1 = (i * this.timeIntervalMinutes * this.oneMinute) - i * itemHeightCompensation;
+                top_1 = (i * this.timeIntervalMinutes * this.oneMinuteHeight) - i * itemHeightCompensation;
                 gm.newItem("p", {
                     className: "cal-time",
                     innerText: this.timeString(hour, minu),
@@ -90,6 +87,7 @@ var Calendar = /** @class */ (function () {
 }());
 var CCalEvent = /** @class */ (function () {
     function CCalEvent(options) {
+        this.specialClass = "none";
         this.id = options.id;
         this.startDateString = options.startDateString;
         this.endDateString = options.endDateString;
@@ -97,25 +95,38 @@ var CCalEvent = /** @class */ (function () {
         this.endDate = moment(this.endDateString).tz("America/New_York");
         this.startTimestamp = this.startDate.valueOf();
         this.endTimestamp = this.endDate.valueOf();
+        this.inDayStartTime = ((this.startTimestamp % 86400000) + moment.TzUtcOffset);
+        this.inDayEndTime = ((this.endTimestamp % 86400000) + moment.TzUtcOffset);
         this.name = options.name;
         this.backgroundColor = options.backgroundColor;
         this.textColor = options.textColor || "inherit";
         this.durationSeconds = (this.endTimestamp - this.startTimestamp) / 1000;
     }
-    CCalEvent.prototype.initialize = function (cal) {
+    CCalEvent.prototype.isVisible = function (cal) {
         if ((this.startTimestamp < cal.minTimestamp && this.endTimestamp < cal.minTimestamp) ||
-            (this.startTimestamp > cal.maxTimestamp) || this.endTimestamp < cal.minTimestamp) {
-            return false;
-        }
-        var n = (this.startTimestamp % 86400000) + moment.TzUtcOffset;
-        if (n > cal.timeMax) {
-            return false;
-        }
-        n = (this.endTimestamp % 86400000) + moment.TzUtcOffset;
-        if (n < cal.timeMin) {
+            (this.startTimestamp > cal.maxTimestamp) || this.endTimestamp < cal.minTimestamp ||
+            this.inDayStartTime > cal.timeMax ||
+            this.inDayEndTime < cal.timeMin) {
             return false;
         }
         return true;
+    };
+    CCalEvent.prototype.calculatePosition = function (cal) {
+        // We should have: this.displayTop + (this.durationSeconds*cal.timeIntervalMinutes) + this.displayBottom == cal.height;
+        if (this.inDayStartTime <= cal.timeMin) { // the event starts before the minTime
+            this.specialClass = "cut-top";
+            this.displayTop = 0; // this.height = (this.inDayEndTime - cal.timeMin)
+            this.displayBottom = cal.height - (this.durationSeconds * cal.oneMinuteHeight);
+        }
+    };
+    CCalEvent.prototype.refreshView = function (cal, recalcuatePosition) {
+        if (recalcuatePosition === void 0) { recalcuatePosition = false; }
+        if (typeof this.displayTop == "undefined" || recalcuatePosition === true) {
+            this.calculatePosition(cal);
+        }
+        if (typeof this.domItem == "undefined") {
+            this.domItem = gm.newItem("div", null, cal.container.getElementsByClassName("cal-content")[0]);
+        }
     };
     return CCalEvent;
 }());
@@ -131,7 +142,7 @@ window.addEventListener("load", function (event) {
 });
 var testEvent_ = {
     id: "test",
-    startDateString: moment("2022-04-07 15:30:00").toISOString(),
+    startDateString: moment("2022-04-07 15:00:00").toISOString(),
     endDateString: moment("2022-04-07 15:45:00").toISOString(),
     name: "Test Event !",
     backgroundColor: "orange"
