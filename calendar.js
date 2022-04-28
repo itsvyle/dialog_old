@@ -258,6 +258,7 @@ var Calendar = /** @class */ (function () {
         m.getElementsByClassName("cal-menu-event-date")[0].innerText = dt || "...";
         m.getElementsByClassName("cal-menu-event-host")[0].innerText = host || "...";
         m.getElementsByClassName("cal-menu-event-class")[0].innerText = classType || "...";
+        m.getElementsByClassName("cal-menu-event-location")[0].innerText = location || "...";
         var p = m.getElementsByClassName("cal-menu-event-type")[0];
         p.innerText = eventType || "...";
         p.className = "cal-menu-event-type cal-menu-event-type-" + (eventType ? eventType.toLowerCase() : "loading");
@@ -437,12 +438,12 @@ var CCalEvent = /** @class */ (function () {
             id: this.id,
             title: this.name,
             dt: this.startDate.format("dddd, MMMM D") + " • " + moment.timeString(this.startDate.get("hours"), this.startDate.get("minutes")) + "-" + moment.timeString(this.endDate.get("hours"), this.endDate.get("minutes")),
-            classType: "NULL",
             color: this.backgroundColor,
-            host: "NULL",
-            eventType: "NULL",
-            location: "NULL",
-            notes: null,
+            //classType: "NULL",
+            //host: "NULL",
+            //eventType: "NULL",
+            //location: "NULL",
+            //notes: null,
             nextToItem: this.domItem
         });
     };

@@ -317,9 +317,13 @@
 .cal-menu-event-type {
     text-decoration: underline;
 }
+.cal-menu-event-type-loading {
+    text-decoration: none;
+}
 .cal-menu-event-type-unknown {
     font-style: italic;
 }
+
 .cal-menu-notes-empty {
     font-style: italic;
     user-select: none;

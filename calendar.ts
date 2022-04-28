@@ -20,7 +20,7 @@ interface CalendarMenuDataOptions {
     classType?: string;
     location?: string;
     eventType?: string;
-    notes: string | null | undefined;
+    notes?: string | null | undefined;
 };
 interface CalendarMenuOpenOptions extends CalendarMenuDataOptions {
     pageX?: number;
@@ -320,6 +320,7 @@ class Calendar {
         (m.getElementsByClassName("cal-menu-event-date")[0] as HTMLParagraphElement).innerText = dt || "...";
         (m.getElementsByClassName("cal-menu-event-host")[0] as HTMLParagraphElement).innerText = host || "...";
         (m.getElementsByClassName("cal-menu-event-class")[0] as HTMLParagraphElement).innerText = classType || "...";
+        (m.getElementsByClassName("cal-menu-event-location")[0] as HTMLParagraphElement).innerText = location || "...";
         let p = (m.getElementsByClassName("cal-menu-event-type")[0] as HTMLParagraphElement);
         p.innerText = eventType || "...";
         p.className = "cal-menu-event-type cal-menu-event-type-" + (eventType ? eventType.toLowerCase() : "loading");
@@ -536,12 +537,12 @@ class CCalEvent implements CalEvent {
             id: this.id!,
             title: this.name,
             dt: this.startDate.format("dddd, MMMM D") + " • " + moment.timeString(this.startDate.get("hours"), this.startDate.get("minutes")) + "-" + moment.timeString(this.endDate.get("hours"), this.endDate.get("minutes")),
-            classType: "NULL",
             color: this.backgroundColor,
-            host: "NULL",
-            eventType: "NULL",
-            location: "NULL",
-            notes: null,
+            //classType: "NULL",
+            //host: "NULL",
+            //eventType: "NULL",
+            //location: "NULL",
+            //notes: null,
             nextToItem: this.domItem!
         });
     }
