@@ -44,16 +44,25 @@ a {
 }
     /* a:visited {color: initial;} */
 
-    p.accent, a.accent {
-        color: var(--accent-color);
-    }
+p.accent, a.accent {
+    color: var(--accent-color);
+}
 
-        a.accent:hover {
-            color: var(--accent-color-hover);
-        }
+a.accent:hover {
+    color: var(--accent-color-hover);
+}
 
 *:focus {
     outline: none;
+}
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .flex-container {

@@ -17,9 +17,8 @@ var Calendar = /** @class */ (function () {
         this.container = opts.container;
         this.menu = opts.menu;
         this.menu.getElementsByClassName("cal-menu-option-close")[0].addEventListener("click", function (e) {
-            //@ts-ignore
-            e.target.parentElement.parentElement.classList.remove("cal-menu-open");
-        });
+            this.closeMenu();
+        }.bind(this));
         this.height = opts.height;
         this.width = this.container.getElementsByClassName("cal-content")[0].offsetWidth;
         this.forceSingleColumn = typeof opts.forceSingleColumn === "boolean" ? opts.forceSingleColumn : false;
@@ -73,7 +72,9 @@ var Calendar = /** @class */ (function () {
             this.visibleColumnsCount = 5;
         }
         this.visibleColumnsWidth = (this.width - CalendarColumnTimeWidth) / this.visibleColumnsCount;
-        this.menu.classList.remove("cal-menu-open");
+        if (this.menu.classList.contains("cal-menu-animating") === false) {
+            this.closeMenu();
+        }
         if (this.viewMode == "columns" && r) {
             this.generateColumns();
             this.refreshRedLine();
@@ -206,7 +207,7 @@ var Calendar = /** @class */ (function () {
             this.maxTimestamp = this.startOfWeekTimestamp + (4 * 86400000) + this.timeMax;
             this.currentlyVisibleColumnIndex = (ty == "forward" ? 0 : 4);
         }
-        this.menu.classList.remove("cal-menu-open");
+        this.closeMenu();
         this.refreshAll();
     };
     Calendar.prototype.refreshRedLine = function () {
@@ -275,6 +276,12 @@ var Calendar = /** @class */ (function () {
             p.innerText = notes;
             p.classList.remove("cal-menu-notes-empty");
         }
+        if (host) {
+            m.classList.remove("cal-menu-loading");
+        }
+        else {
+            m.classList.add("cal-menu-loading");
+        }
         m.getElementsByClassName("cal-menu-option-edit")[0].onclick = function (eventId, mouseEvent) {
             var e = this.getEventById(eventId);
             if (!e) {
@@ -286,6 +293,7 @@ var Calendar = /** @class */ (function () {
     Calendar.prototype.openMenu = function (opts) {
         this.setMenuData(opts);
         var m = this.menu;
+        m.classList.remove("cal-menu-closed");
         var pageX = opts.pageX, pageY = opts.pageY, nextToItem = opts.nextToItem;
         if (typeof pageX !== "undefined" && typeof pageY !== "undefined") {
             m.style.left = String(pageX) + "px";
@@ -338,7 +346,16 @@ var Calendar = /** @class */ (function () {
                 }
             }
         }
-        m.classList.add("cal-menu-open");
+        m.classList.add("cal-menu-open", "cal-menu-animating");
+        setTimeout(function () { return m.classList.remove("cal-menu-animating"); }, 1200);
+    };
+    Calendar.prototype.closeMenu = function () {
+        var m = this.menu.classList;
+        m.remove("cal-menu-open", "cal-menu-animating");
+        //m.add("cal-menu-closed", "cal-menu-animating");
+        //setTimeout(function () {
+        //    m.remove("cal-menu-open", "cal-menu-animating");
+        //}, 1200);
     };
     return Calendar;
 }());
@@ -363,8 +380,8 @@ var CCalEvent = /** @class */ (function () {
         this.textColor = options.textColor || "inherit";
         this.durationSeconds = (this.endTimestamp - this.startTimestamp) / 1000;
     }
-    CCalEvent.prototype.buildTimeString = function (cal) {
-        this.timeString = moment.timeString(Math.floor((this.inDayStartTime / 1000 / 60) / 60), (this.inDayStartTime / 1000 / 60) % 60) + " - " + moment.timeString(Math.floor((this.inDayEndTime / 1000 / 60) / 60), (this.inDayEndTime / 1000 / 60) % 60);
+    CCalEvent.prototype.buildTimeString = function () {
+        this.timeString = this.startDate.format("dddd, MMMM D") + " • " + moment.timeString(this.startDate.get("hours"), this.startDate.get("minutes")) + "-" + moment.timeString(this.endDate.get("hours"), this.endDate.get("minutes"));
     };
     CCalEvent.prototype.isVisible = function (cal) {
         if (this.columnIndex === -1 ||
@@ -398,7 +415,7 @@ var CCalEvent = /** @class */ (function () {
         if (recalcuatePosition === void 0) { recalcuatePosition = false; }
         if (!this.clickEventHandler)
             this.clickEventHandler = this.openMenu.bind(this, cal);
-        this.buildTimeString(cal);
+        this.buildTimeString();
         if (!this.isVisible(cal)) {
             if (this.domItem) {
                 this.domItem.removeEventListener("click", this.clickEventHandler);
@@ -437,7 +454,7 @@ var CCalEvent = /** @class */ (function () {
         cal.openMenu({
             id: this.id,
             title: this.name,
-            dt: this.startDate.format("dddd, MMMM D") + " • " + moment.timeString(this.startDate.get("hours"), this.startDate.get("minutes")) + "-" + moment.timeString(this.endDate.get("hours"), this.endDate.get("minutes")),
+            dt: this.timeString,
             color: this.backgroundColor,
             //classType: "NULL",
             //host: "NULL",
@@ -446,11 +463,56 @@ var CCalEvent = /** @class */ (function () {
             //notes: null,
             nextToItem: this.domItem
         });
+        cal.eventDataFetchFunction(this.id, function (ogEvent, success, eData) {
+            if (!success) {
+                this.setMenuData({
+                    id: ogEvent.id,
+                    title: ogEvent.name,
+                    color: ogEvent.backgroundColor,
+                    dt: ogEvent.timeString,
+                    classType: "ERROR",
+                    eventType: "ERROR",
+                    host: "ERROR",
+                    location: "ERROR",
+                    notes: "ERROR"
+                });
+                return;
+            }
+            if (!eData) {
+                return;
+            }
+            // Maybe refresh current info for event
+            this.setMenuData({
+                id: ogEvent.id,
+                title: ogEvent.name,
+                color: ogEvent.backgroundColor,
+                dt: ogEvent.timeString,
+                classType: eData.classType,
+                eventType: eData.eventType,
+                host: eData.host,
+                location: eData.location,
+                notes: eData.notes
+            });
+        }.bind(cal, this));
     };
     return CCalEvent;
 }());
 var cal;
-function fetData(clb) {
+function fetData(eventId, clb) {
+    setTimeout(function () {
+        clb(true, {
+            id: "test2",
+            startDateString: moment("2022-04-26 15:20:00").toISOString(),
+            endDateString: moment("2022-04-26 15:40:00").toISOString(),
+            name: "Tuesday !",
+            backgroundColor: "green",
+            host: "TS",
+            eventType: "Revision",
+            classType: "Physics",
+            location: "S417",
+            notes: "Catchin' up",
+        });
+    }, 2500);
 }
 window.addEventListener("load", function (event) {
     cal = new Calendar({

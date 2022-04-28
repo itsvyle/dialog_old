@@ -22,6 +22,8 @@
     user-select: none;
 }
 
+
+
 .cal-navigation-arrow-container {
     cursor: pointer;
     border-radius: 5px;
@@ -43,12 +45,28 @@
     justify-content: center;
     align-items: center;
 }
+.cal-navigation-loader {
+    border: 7px solid #f3f3f3; /* Light grey */
+    border-top: 7px solid var(--accent-color); /* Blue */
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 2s linear infinite;
+    display: none;
+}
+
 .cal-navigation-datenow {
     text-align: center;
     font-size: 1.2em;
     font-weight: 600;
     line-height: 1.2em;
     height: 1.2em;
+}
+.cal-container.cal-navigation-loading .cal-navigation-loader {
+    display: block;
+}
+.cal-container.cal-navigation-loading .cal-navigation-datenow {
+    display: none;
 }
 
 .cal-date-headers-container {
@@ -203,9 +221,9 @@
     border: 3px solid #ebebeb;
     padding: 0 10px;
     padding-bottom: 15px;
-    display: none;
     background-color: white;
     z-index: 2;
+    display: none;
 }
 @keyframes cal-menu-arrive-left {
     from {opacity: 0.1;transform: translateX(-100px);}
@@ -223,7 +241,6 @@
     from {opacity: 0.1;transform: translateY(100px);}
     to {transform: translateY(0px);opacity: 1;}
 }
-
 .cal-menu-container.cal-menu-open {
     display: block;
 }
@@ -231,6 +248,27 @@
 .cal-menu-container.cal-menu-open[data-from=right] {animation: cal-menu-arrive-right 1.2s;}
 .cal-menu-container.cal-menu-open[data-from=top] {animation: cal-menu-arrive-top 1.2s;}
 .cal-menu-container.cal-menu-open[data-from=bottom] {animation: cal-menu-arrive-bottom 1.2s;}
+
+@keyframes cal-menu-leave-left {
+    from {opacity: 0.1;transform: translateX(-100px);}
+    to {transform: translateX(0px);opacity: 1;}
+}
+@keyframes cal-menu-leave-right {
+    from {opacity: 0.1;transform: translateX(100px);}
+    to {transform: translateX(0px);opacity: 1;}
+}
+@keyframes cal-menu-leave-top {
+    from {opacity: 0.1;transform: translateY(-100px);}
+    to {transform: translateY(0px);opacity: 1;}
+}
+@keyframes cal-menu-leave-bottom {
+    from {opacity: 1.0;transform: translateY(0px);}
+    to {transform: translateY(100px);opacity: 0;}
+}
+
+.cal-menu-container.cal-menu-closed[data-from=top] {
+    animation: cal-menu-leave-bottom 1.2s;
+}
 
 .cal-menu-options-container {
     display: flex;
@@ -242,6 +280,22 @@
     position: sticky;
     top: 0;
     background-color: white;
+}
+
+.cal-menu-option-loading {
+    flex-grow: 0;
+    flex-shrink: 0;
+    border: 10px solid #f3f3f3;
+    border-top: 10px solid var(--accent-color);
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    -webkit-animation: spin 2s linear infinite; /* Safari */
+    animation: spin 2s linear infinite;
+    display: none;
+}
+.cal-menu-container.cal-menu-loading .cal-menu-option-loading {
+    display: block;
 }
 
 .cal-menu-option {
