@@ -35,6 +35,9 @@ a, abbr, acronym, address, applet, big, blockquote, body, caption, cite, code, d
     vertical-align: baseline;
     box-sizing: border-box;
 }
+ion-icon {
+    pointer-events: none;
+}
 
 a {
     text-decoration: none;
@@ -163,7 +166,6 @@ body {
     background-color: var(--secondary-color);
     padding: 8px;
     border: 1px var(--secondary-text-color) solid;
-    width: fit-content;
 }
 
 .nav-profile-image {
@@ -307,4 +309,18 @@ body {
         justify-content: center;
         align-items: center;
     }
+}
+
+/*===============================
+============= INPUTS ============
+================================= */
+input.input[type=date] {
+    border-radius: 8px;
+    border: none;
+    background: var(--secondary-color);
+    color: #b7babc;
+    cursor: pointer;
+    padding: 10px;
+    font-family: var(--font-family);
+    font-size: 18px;
 }

@@ -48,19 +48,96 @@
             <ion-icon name="chevron-down-outline"></ion-icon>
         </div>
     </div>
+    <div class="nav-profile-dropdown" id="nav-profile-dropdown">
+        <a class="nav-profile-dropdown-item"><ion-icon name="settings-outline"></ion-icon>Settings</a>
+        <a class="nav-profile-dropdown-item"><ion-icon name="log-out-outline"></ion-icon>Logout</a>
+    </div>
+
     <br>
     <div id="main-calendar" class="cal-container main-calendar">
-        <div class="cal-content">
+        <div class="cal-header">
+            <div class="cal-navigation-container">
+                <div class="cal-navigation-arrow-container" title="Previous Week">
+                    <ion-icon class="cal-navigation-arrow" name="chevron-back-outline"></ion-icon>
+                </div>
+                <div class="cal-navigation-center">
+                    <p class="cal-navigation-datenow"></p>
+                </div>
+                <div class="cal-navigation-arrow-container" title="Next Week">
+                    <ion-icon class="cal-navigation-arrow" name="chevron-forward-outline"></ion-icon>
+                </div>
+            </div>
+            <div class="cal-date-headers-container">
+                <div></div>
+            </div>
+        </div>
+        <div class="cal-content"> <!-- Automate the addition of these items in the future-->
             <div class="cal-view-columns">
                 <div class="cal-column-times"></div>
                 <div class="cal-column-content"></div>
             </div>
         </div>
     </div>
-
-    <div class="nav-profile-dropdown" id="nav-profile-dropdown">
-        <a class="nav-profile-dropdown-item"><ion-icon name="settings-outline"></ion-icon>Settings</a>
-        <a class="nav-profile-dropdown-item"><ion-icon name="log-out-outline"></ion-icon>Logout</a>
+    <div id="main-calendar-menu" class="cal-menu-container">
+        <div class="cal-menu-options-container">
+            <div style="width: 100%;"></div>
+            <div class="cal-menu-option cal-menu-option-edit" title="Edit Event">
+                <ion-icon name="pencil-outline"></ion-icon>
+            </div>
+            <div class="cal-menu-option cal-menu-option-close" title="Close">
+                <ion-icon name="close-outline"></ion-icon>
+            </div>
+        </div>
+        <div class="cal-menu-content">
+            <div class="cal-menu-content-row">
+                <div class="cal-menu-row-icon cal-menu-row-icon-color">
+                    <ion-icon name="cube-outline" style="color: inherit;"></ion-icon>
+                </div>
+                <div class="cal-menu-row-content">
+                    <p class="cal-menu-event-title">Wednesday</p>
+                </div>
+            </div>
+            <div class="cal-menu-content-row">
+                <div class="cal-menu-row-icon">
+                    <ion-icon name="time-outline"></ion-icon>
+                </div>
+                <div class="cal-menu-row-content">
+                    <p class="cal-menu-event-date">April 27th 2022 • 15:15-16:00</p>
+                </div>
+            </div>
+            <div class="cal-menu-content-row">
+                <div class="cal-menu-row-icon">
+                    <ion-icon name="people-circle-outline"></ion-icon>
+                </div>
+                <div class="cal-menu-row-content">
+                    <p class="cal-menu-event-host">T. S</p>
+                    <div style="width: 100%;"></div>
+                    <p class="cal-menu-event-class">Physique</p>
+                </div>
+            </div>
+            <div class="cal-menu-content-row">
+                <div class="cal-menu-row-icon">
+                    <ion-icon name="location-outline"></ion-icon>
+                </div>
+                <div class="cal-menu-row-content">
+                    <p class="cal-menu-event-location">S417</p>
+                </div>
+            </div>
+            <div class="cal-menu-content-row cal-menu-row-notes">
+                <div class="cal-menu-row-icon">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                </div>
+                <div class="cal-menu-row-content">
+                    <div>
+                        <p style="font-weight: 100;">Event Type:</p>
+                        <p class="cal-menu-event-type cal-menu-event-type-unknown">Unknown</p>
+                    </div>
+                    <p class="cal-menu-event-notes cal-menu-notes-empty">
+                        No meeting notes
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- Ion-Icons importation -->
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>

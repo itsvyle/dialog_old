@@ -222,10 +222,9 @@ const gm = new class {
     JSONParse(t: string): (Object | null) {
         try { return JSON.parse(t); } catch (err) { return null; }
     }
-
-    newItem(itemType: string, opts: GMNewItemOptions | string | null = {}, appendTo?: (Element | null)): Element {
+    newItem<K extends keyof HTMLElementTagNameMap>(itemType: K, opts: GMNewItemOptions | string | null = {}, appendTo?: (Element | null)): HTMLElementTagNameMap[K] {
         if (typeof opts == "string") { opts = { className: opts }; } else if (opts === null) { opts = {}; }
-        let o: HTMLElement = <HTMLElement>document.createElement(itemType);
+        let o: HTMLElementTagNameMap[K] = <HTMLElementTagNameMap[K]>document.createElement(itemType);
         for (let k in opts) {
             if ((k in o) && k !== "style") {
                 // @ts-ignore

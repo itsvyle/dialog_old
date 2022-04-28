@@ -24,8 +24,7 @@
       "ES2016.array.include",
       "ES2019.string",
       "ES2019.array",
-      "ES2019.object",
-      "ES2015.Promise"
+      "ES2019.object"
     ]
     /*"moduleDetection": "force",*/
   },
