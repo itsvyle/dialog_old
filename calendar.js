@@ -15,11 +15,14 @@ var Calendar = /** @class */ (function () {
         this.viewMode = opts.viewMode || "columns";
         this.eventDataFetchFunction = opts.eventDataFetchFunction;
         this.container = opts.container;
+        this.height = opts.height;
+        this.container.getElementsByClassName("cal-content")[0].style.height = String(this.height) + "px";
         this.menu = opts.menu;
-        this.menu.getElementsByClassName("cal-menu-option-close")[0].addEventListener("click", function (e) {
+        this.menu.getElementsByClassName("cal-menu-option-close")[0].addEventListener("click", function () {
             this.closeMenu();
         }.bind(this));
-        this.height = opts.height;
+        this.skipWeekdays = opts.skipWeekDays || [];
+        this.maxColumnsCount = 5 - this.skipWeekdays.length;
         this.width = this.container.getElementsByClassName("cal-content")[0].offsetWidth;
         this.forceSingleColumn = typeof opts.forceSingleColumn === "boolean" ? opts.forceSingleColumn : false;
         this.timeMin = opts.timeMin;
@@ -46,19 +49,29 @@ var Calendar = /** @class */ (function () {
             }, this.dateHeaders[i]);
         }
         this.startOfWeekDate = moment().startOf('isoWeek').tz("America/New_York");
-        this.startOfWeekTimestamp = this.startOfWeekDate.valueOf();
-        this.minTimestamp = this.startOfWeekTimestamp + this.timeMin;
-        this.maxTimestamp = this.startOfWeekTimestamp + (4 * 86400000) + this.timeMax;
         var da = moment().get("day");
         this.currentlyVisibleColumnIndex = (da === 0 || da === 6) ? 0 : da - 1;
         this.visibleColumnsCount = this.visibleColumnsWidth = -1;
         this.refreshWidth(false);
+        while (this.skipWeekdays.indexOf(this.currentlyVisibleColumnIndex) !== -1) {
+            if (this.currentlyVisibleColumnIndex < 4) {
+                this.currentlyVisibleColumnIndex += 1;
+            }
+            else {
+                this.startOfWeekDate.add(7, "days");
+                this.currentlyVisibleColumnIndex = 0;
+            }
+        }
+        this.startOfWeekTimestamp = this.startOfWeekDate.valueOf();
+        this.minTimestamp = this.startOfWeekTimestamp + this.timeMin;
+        this.maxTimestamp = this.startOfWeekTimestamp + (4 * 86400000) + this.timeMax;
         //let prevMonday = new Date(utc.toUTCString());
         //console.log(prevMonday);
         //prevMonday.setDate(prevMonday.getDate() - (prevMonday.getDay() + 6) % 7);
         //this.currentTimestamp = prevMonday.getTime();
         this.generateColumns();
         this.redLine = gm.newItem("div", "cal-columns-redline", this.container.getElementsByClassName("cal-column-content")[0]);
+        this.redLine.style.width = String(100 / this.maxColumnsCount) + "%";
         this.generateTimes();
         this.refreshDate();
         this.refreshView();
@@ -154,7 +167,7 @@ var Calendar = /** @class */ (function () {
         var s = this.startOfWeekDate.clone();
         for (var i = 0; i < max; i++) {
             var d = this.dayColumns[i].parentElement;
-            if (this.visibleColumnsCount === 1 && i !== this.currentlyVisibleColumnIndex) {
+            if (this.visibleColumnsCount === 1 && i !== this.currentlyVisibleColumnIndex || this.skipWeekdays.indexOf(i) !== -1) {
                 d.style.display = "none";
                 headers_container[i].style.display = "none";
             }
@@ -192,13 +205,10 @@ var Calendar = /** @class */ (function () {
         }
     };
     Calendar.prototype.buttonChangeDate = function (ty) {
+        var inc;
         if (this.visibleColumnsCount === 1 && ((ty == "forward" && this.currentlyVisibleColumnIndex < 4) || (ty == "backward" && this.currentlyVisibleColumnIndex > 0))) {
-            if (ty == "forward") {
-                this.currentlyVisibleColumnIndex += 1;
-            }
-            else {
-                this.currentlyVisibleColumnIndex -= 1;
-            }
+            inc = (ty === "forward") ? 1 : -1;
+            this.currentlyVisibleColumnIndex += inc;
         }
         else {
             this.startOfWeekDate.add((ty == "forward" ? 1 : -1), "week");
@@ -207,28 +217,47 @@ var Calendar = /** @class */ (function () {
             this.maxTimestamp = this.startOfWeekTimestamp + (4 * 86400000) + this.timeMax;
             this.currentlyVisibleColumnIndex = (ty == "forward" ? 0 : 4);
         }
+        while (this.skipWeekdays.indexOf(this.currentlyVisibleColumnIndex) !== -1) {
+            if (((ty == "forward" && this.currentlyVisibleColumnIndex < 4) || (ty == "backward" && this.currentlyVisibleColumnIndex > 0))) {
+                this.currentlyVisibleColumnIndex += inc;
+            }
+            else {
+                this.startOfWeekDate.add(ty === "forward" ? 7 : -7, "days");
+                this.currentlyVisibleColumnIndex = (ty == "forward" ? 0 : 4);
+            }
+        }
         this.closeMenu();
         this.refreshAll();
     };
     Calendar.prototype.refreshRedLine = function () {
         this.redLine.style.display = "none";
-        var dn = moment().set("hours", 15).set("minutes", 25);
+        var dn = moment().set("hours", 15).set("minutes", 25).add(-1, "days");
         var dTimestamp = ((dn.get("hours") * 3600000) + (dn.get("minutes") * 60000));
         if (this.timeMax > dTimestamp && this.timeMin < dTimestamp) {
             var dt = void 0;
             dt = dn.valueOf();
-            if (dt > this.minTimestamp && dt < this.maxTimestamp) {
-                if (this.visibleColumnsCount === 1 && this.currentlyVisibleColumnIndex == (dn.get("day") - 1)) {
-                    //@ts-ignore
-                    this.redLine.style.left = null;
-                    this.redLine.style.display = "block";
-                }
-                else if (this.visibleColumnsCount > 1) {
-                    this.redLine.style.left = String((dn.get("day") - 1) * 20) + "%";
-                    this.redLine.style.display = "block";
-                }
-                if (this.redLine.style.display === "block") {
-                    this.redLine.style.top = String((((dTimestamp - this.timeMin) / 60000) * this.oneMinuteHeight) + this.timeItemHeight / 2) + "px";
+            var da = (dn.get("day") - 1);
+            if (this.skipWeekdays.indexOf(da) === -1) {
+                if (dt > this.minTimestamp && dt < this.maxTimestamp) {
+                    if (this.visibleColumnsCount === 1 && this.currentlyVisibleColumnIndex == da) {
+                        //@ts-ignore
+                        this.redLine.style.left = null;
+                        this.redLine.style.width = "100%";
+                        this.redLine.style.display = "block";
+                    }
+                    else if (this.visibleColumnsCount > 1) {
+                        for (var t = 0; t < this.skipWeekdays.length; t++) {
+                            if (this.skipWeekdays[t] <= da) {
+                                da -= 1;
+                            }
+                        }
+                        this.redLine.style.left = String(da * (100 / this.maxColumnsCount)) + "%";
+                        this.redLine.style.width = String(100 / this.maxColumnsCount) + "%";
+                        this.redLine.style.display = "block";
+                    }
+                    if (this.redLine.style.display === "block") {
+                        this.redLine.style.top = String((((dTimestamp - this.timeMin) / 60000) * this.oneMinuteHeight) + this.timeItemHeight / 2) + "px";
+                    }
                 }
             }
         }
@@ -254,6 +283,7 @@ var Calendar = /** @class */ (function () {
     Calendar.prototype.setMenuData = function (_a) {
         var id = _a.id, title = _a.title, color = _a.color, host = _a.host, dt = _a.dt, classType = _a.classType, location = _a.location, eventType = _a.eventType, notes = _a.notes;
         var m = this.menu;
+        m.setAttribute("data-id", id);
         m.getElementsByClassName("cal-menu-row-icon-color")[0].style.color = color;
         m.getElementsByClassName("cal-menu-event-title")[0].innerText = title;
         m.getElementsByClassName("cal-menu-event-date")[0].innerText = dt || "...";
@@ -464,6 +494,9 @@ var CCalEvent = /** @class */ (function () {
             nextToItem: this.domItem
         });
         cal.eventDataFetchFunction(this.id, function (ogEvent, success, eData) {
+            if (this.menu.getAttribute("data-id") !== ogEvent.id) {
+                return;
+            }
             if (!success) {
                 this.setMenuData({
                     id: ogEvent.id,
@@ -523,7 +556,8 @@ window.addEventListener("load", function (event) {
         timeMax: (16 * 3600 * 1000) + (5 * 60 * 1000),
         timeIntervalMinutes: 5,
         forceSingleColumn: false,
-        eventDataFetchFunction: fetData
+        eventDataFetchFunction: fetData,
+        skipWeekDays: [1, 4]
     });
     cal.addEvent(testEvent);
     cal.addEvent(new CCalEvent({

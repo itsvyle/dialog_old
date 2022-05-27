@@ -87,7 +87,6 @@
 
 .cal-content {
     width: 100%;
-    height: 400px;
 }
 .cal-view-columns {
     width: 100%;
@@ -101,7 +100,7 @@
 }
 .cal-column-times, .cal-column-content {
     position: relative;
-    /*display: flex;*/
+    display: flex;
 }
 .cal-column-times {
     width: 45px;
@@ -124,7 +123,6 @@
 }
 .cal-columns-redline {
     position: absolute;
-    width: 20%;
     height: 2px;
     background-color: red;
     z-index: 3;
@@ -133,26 +131,18 @@
     width: 100%;
 }
 .cal-column-day {
-    position: absolute;
+    /*position: absolute;*/
     height: 100%;
     border-right: 2px solid #dadce0;
     z-index: 1;
     padding-right: 7px;
-    width: 20%;
+    width: 100%;
 }
-.cal-column-content .cal-column-day:nth-of-type(1) {}
-.cal-column-content .cal-column-day:nth-of-type(2) {
-    left: 20%;
-}
-.cal-column-content .cal-column-day:nth-of-type(3) {
-    left: 40%;
-}
-.cal-column-content .cal-column-day:nth-of-type(4) {
-    left: 60%;
-}
-.cal-column-content .cal-column-day:nth-of-type(5) {
-    left: 80%;
-}
+/*.cal-column-content .cal-column-day:nth-of-type(1) {}
+.cal-column-content .cal-column-day:nth-of-type(2) {left: 20%;}
+.cal-column-content .cal-column-day:nth-of-type(3) {left: 40%;}
+.cal-column-content .cal-column-day:nth-of-type(4) {left: 60%;}
+.cal-column-content .cal-column-day:nth-of-type(5) {left: 80%;}*/
 
 .cal-column-day.cal-column-day-current {
     /*border: 2px solid #3d3d3d;*/
@@ -243,11 +233,12 @@
 }
 .cal-menu-container.cal-menu-open {
     display: block;
+    animation-duration: 0.5s;
 }
-.cal-menu-container.cal-menu-open[data-from=left] {animation: cal-menu-arrive-left 1.2s;}
-.cal-menu-container.cal-menu-open[data-from=right] {animation: cal-menu-arrive-right 1.2s;}
-.cal-menu-container.cal-menu-open[data-from=top] {animation: cal-menu-arrive-top 1.2s;}
-.cal-menu-container.cal-menu-open[data-from=bottom] {animation: cal-menu-arrive-bottom 1.2s;}
+.cal-menu-container.cal-menu-open[data-from=left] {animation-name: cal-menu-arrive-left;}
+.cal-menu-container.cal-menu-open[data-from=right] {animation-name: cal-menu-arrive-right;}
+.cal-menu-container.cal-menu-open[data-from=top] {animation-name: cal-menu-arrive-top;}
+.cal-menu-container.cal-menu-open[data-from=bottom] {animation-name: cal-menu-arrive-bottom;}
 
 @keyframes cal-menu-leave-left {
     from {opacity: 0.1;transform: translateX(-100px);}

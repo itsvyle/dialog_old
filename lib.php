@@ -304,11 +304,13 @@ class DataClientQueryResult {
 
 }
 
+function on_shutdown() {
+	DataClient::close();
+}
 
 function on_shutdown_default() {
   if (function_exists("on_shutdown")) {
     if (on_shutdown() === false) {return;}
   }
-  
 }
 register_shutdown_function("on_shutdown_default");

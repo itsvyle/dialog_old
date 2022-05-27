@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <title>!</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <base href="file:///C:/VBData 2019/Dialog/Dialog">
+    <!-- <base href="file:///C:/VBData 2019/Dialog/Dialog"> -->
     <!-- Lib: import first -->
     <script src="/lib.js" type="application/javascript"></script>
     <link href="/lib.css" rel="stylesheet">

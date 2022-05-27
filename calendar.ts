@@ -11,6 +11,7 @@ type CalendarCreationOptions = {
     viewMode?: "list" | "columns";
     forceSingleColumn?: boolean;
     eventDataFetchFunction: CalendarEventDataFetchFunc;
+    skipWeekDays?: number[]
 };
 interface CalendarMenuDataOptions {
     id: string;
@@ -63,17 +64,22 @@ class Calendar {
     forceSingleColumn: boolean = false;
 
     eventDataFetchFunction: CalendarEventDataFetchFunc;
+    skipWeekdays: number[];
+    maxColumnsCount: number;
 
 
     constructor(opts: CalendarCreationOptions) {
         this.viewMode = opts.viewMode || "columns";
         this.eventDataFetchFunction = opts.eventDataFetchFunction;
         this.container = opts.container;
+        this.height = opts.height;
+        (this.container.getElementsByClassName("cal-content")[0] as HTMLDivElement).style.height = String(this.height) + "px";
         this.menu = opts.menu;
-        this.menu.getElementsByClassName("cal-menu-option-close")[0].addEventListener("click", function (this: Calendar,e) {
+        this.menu.getElementsByClassName("cal-menu-option-close")[0].addEventListener("click", function (this: Calendar) {
             this.closeMenu();
         }.bind(this));
-        this.height = opts.height;
+        this.skipWeekdays = opts.skipWeekDays || [];
+        this.maxColumnsCount = 5 - this.skipWeekdays.length;
         this.width = (<HTMLDivElement>this.container.getElementsByClassName("cal-content")[0]).offsetWidth;
         this.forceSingleColumn = typeof opts.forceSingleColumn === "boolean" ? opts.forceSingleColumn : false;
         this.timeMin = opts.timeMin;
@@ -103,17 +109,23 @@ class Calendar {
             }, this.dateHeaders[i]);
         }
         this.startOfWeekDate = moment().startOf('isoWeek').tz("America/New_York");
-        this.startOfWeekTimestamp = this.startOfWeekDate.valueOf();
-        this.minTimestamp = this.startOfWeekTimestamp + this.timeMin;
-        this.maxTimestamp = this.startOfWeekTimestamp + (4 * 86400000) + this.timeMax;
-
-
-
+        
         let da = moment().get("day");
         this.currentlyVisibleColumnIndex = (da === 0 || da === 6) ? 0 : da - 1;
         this.visibleColumnsCount = this.visibleColumnsWidth = -1;
         this.refreshWidth(false);
+        while (this.skipWeekdays.indexOf(this.currentlyVisibleColumnIndex) !== -1) {
+            if (this.currentlyVisibleColumnIndex < 4) {
+                this.currentlyVisibleColumnIndex += 1;
+            } else {
+                this.startOfWeekDate.add(7, "days");
+                this.currentlyVisibleColumnIndex = 0;
+            }
+        }
 
+        this.startOfWeekTimestamp = this.startOfWeekDate.valueOf();
+        this.minTimestamp = this.startOfWeekTimestamp + this.timeMin;
+        this.maxTimestamp = this.startOfWeekTimestamp + (4 * 86400000) + this.timeMax;
         
         //let prevMonday = new Date(utc.toUTCString());
         //console.log(prevMonday);
@@ -122,6 +134,7 @@ class Calendar {
 
         this.generateColumns();
         this.redLine = gm.newItem("div", "cal-columns-redline", this.container.getElementsByClassName("cal-column-content")[0]);
+        this.redLine.style.width = String(100 / this.maxColumnsCount) + "%";
 
         this.generateTimes();
         this.refreshDate();
@@ -218,7 +231,7 @@ class Calendar {
         let s = this.startOfWeekDate.clone();
         for (let i = 0; i < max; i++) {
             let d = <HTMLElement>this.dayColumns[i].parentElement;
-            if (this.visibleColumnsCount === 1 && i !== this.currentlyVisibleColumnIndex) {
+            if (this.visibleColumnsCount === 1 && i !== this.currentlyVisibleColumnIndex || this.skipWeekdays.indexOf(i) !== -1) {
                 d.style.display = "none";
                 headers_container[i].style.display = "none";
             } else {
@@ -255,12 +268,10 @@ class Calendar {
     }
 
     buttonChangeDate(ty: "forward" | "backward") {
+        let inc: number;
         if (this.visibleColumnsCount === 1 && ((ty == "forward" && this.currentlyVisibleColumnIndex < 4) || (ty == "backward" && this.currentlyVisibleColumnIndex > 0))) {
-            if (ty == "forward") {
-                this.currentlyVisibleColumnIndex += 1;
-            } else {
-                this.currentlyVisibleColumnIndex -= 1;
-            }
+            inc = (ty === "forward") ? 1 : -1;
+            this.currentlyVisibleColumnIndex += inc;
         } else {
             this.startOfWeekDate.add((ty == "forward" ? 1 : -1), "week");
             this.startOfWeekTimestamp = this.startOfWeekDate.valueOf();
@@ -268,6 +279,14 @@ class Calendar {
             this.maxTimestamp = this.startOfWeekTimestamp + (4 * 86400000) + this.timeMax;
 
             this.currentlyVisibleColumnIndex = (ty == "forward" ? 0 : 4);
+        }
+        while (this.skipWeekdays.indexOf(this.currentlyVisibleColumnIndex) !== -1) {
+            if (((ty == "forward" && this.currentlyVisibleColumnIndex < 4) || (ty == "backward" && this.currentlyVisibleColumnIndex > 0))) {
+                this.currentlyVisibleColumnIndex += inc;
+            } else {
+                this.startOfWeekDate.add(ty === "forward" ? 7 : -7,"days");
+                this.currentlyVisibleColumnIndex = (ty == "forward" ? 0 : 4);
+            }
         }
         this.closeMenu();
         this.refreshAll();
@@ -277,22 +296,28 @@ class Calendar {
 
     refreshRedLine() {
         this.redLine.style.display = "none";
-        let dn: moment.Moment = moment().set("hours", 15).set("minutes", 25);
+        let dn: moment.Moment = moment().set("hours", 15).set("minutes", 25).add(-1,"days");
         let dTimestamp = ((dn.get("hours") * 3600000) + (dn.get("minutes") * 60000));
         if (this.timeMax > dTimestamp && this.timeMin < dTimestamp) {
             let dt: number;
             dt = dn.valueOf();
-            if (dt > this.minTimestamp! && dt < this.maxTimestamp!) {
-                if (this.visibleColumnsCount === 1 && this.currentlyVisibleColumnIndex == (dn.get("day") - 1)) {
-                    //@ts-ignore
-                    this.redLine.style.left = null;
-                    this.redLine.style.display = "block";
-                } else if (this.visibleColumnsCount > 1) {
-                    this.redLine.style.left = String((dn.get("day") - 1) * 20) + "%";
-                    this.redLine.style.display = "block";
-                }
-                if (this.redLine.style.display === "block") {
-                    this.redLine.style.top = String((((dTimestamp-this.timeMin)/60000)*this.oneMinuteHeight) + this.timeItemHeight/2) + "px";
+            let da = (dn.get("day") - 1);
+            if (this.skipWeekdays.indexOf(da) === -1) {
+                if (dt > this.minTimestamp! && dt < this.maxTimestamp!) {
+                    if (this.visibleColumnsCount === 1 && this.currentlyVisibleColumnIndex == da) {
+                        //@ts-ignore
+                        this.redLine.style.left = null;
+                        this.redLine.style.width = "100%";
+                        this.redLine.style.display = "block";
+                    } else if (this.visibleColumnsCount > 1) {
+                        for (let t = 0; t < this.skipWeekdays.length; t++) { if (this.skipWeekdays[t] <= da) { da -= 1; } }
+                        this.redLine.style.left = String(da * (100 / this.maxColumnsCount)) + "%";
+                        this.redLine.style.width = String(100 / this.maxColumnsCount) + "%";
+                        this.redLine.style.display = "block";
+                    }
+                    if (this.redLine.style.display === "block") {
+                        this.redLine.style.top = String((((dTimestamp - this.timeMin) / 60000) * this.oneMinuteHeight) + this.timeItemHeight / 2) + "px";
+                    }
                 }
             }
         }
@@ -317,6 +342,7 @@ class Calendar {
     }
     setMenuData({id,title, color, host, dt, classType, location, eventType, notes }: CalendarMenuDataOptions) {
         let m = this.menu;
+        m.setAttribute("data-id", id);
         (m.getElementsByClassName("cal-menu-row-icon-color")[0] as HTMLDivElement).style.color = color;
         (m.getElementsByClassName("cal-menu-event-title")[0] as HTMLParagraphElement).innerText = title;
         (m.getElementsByClassName("cal-menu-event-date")[0] as HTMLParagraphElement).innerText = dt || "...";
@@ -554,9 +580,9 @@ class CCalEvent implements CalEvent {
         //console.log("Clicked", this, cal, event);
         cal.openMenu({
             id: this.id!,
-            title: this.name,
-            dt: this.timeString,
-            color: this.backgroundColor,
+            title: this.name!,
+            dt: this.timeString!,
+            color: this.backgroundColor!,
             //classType: "NULL",
             //host: "NULL",
             //eventType: "NULL",
@@ -564,13 +590,14 @@ class CCalEvent implements CalEvent {
             //notes: null,
             nextToItem: this.domItem!
         });
-        cal.eventDataFetchFunction(this.id,function (this: Calendar,ogEvent: CCalEvent,success: boolean, eData?: CalEvent) {
+        cal.eventDataFetchFunction(this.id!, function (this: Calendar, ogEvent: CCalEvent, success: boolean, eData?: CalEvent) {
+            if (this.menu.getAttribute("data-id") !== ogEvent.id) { return; }
             if (!success) {
                 this.setMenuData({
-                    id: ogEvent.id,
+                    id: ogEvent.id!,
                     title: ogEvent.name,
                     color: ogEvent.backgroundColor,
-                    dt: ogEvent.timeString,
+                    dt: ogEvent.timeString!,
                     classType: "ERROR",
                     eventType: "ERROR",
                     host: "ERROR",
@@ -582,10 +609,10 @@ class CCalEvent implements CalEvent {
             if (!eData) { return; }
             // Maybe refresh current info for event
             this.setMenuData({
-                id: ogEvent.id,
+                id: ogEvent.id!,
                 title: ogEvent.name,
                 color: ogEvent.backgroundColor,
-                dt: ogEvent.timeString,
+                dt: ogEvent.timeString!,
                 classType: eData.classType,
                 eventType: eData.eventType,
                 host: eData.host,
@@ -623,7 +650,8 @@ window.addEventListener("load", function (event) {
         timeMax: (16 * 3600 * 1000) + (5 * 60 * 1000),
         timeIntervalMinutes: 5,
         forceSingleColumn: false,
-        eventDataFetchFunction: fetData
+        eventDataFetchFunction: fetData,
+        skipWeekDays: [1,4]
     });
     cal.addEvent(testEvent);
     cal.addEvent(new CCalEvent({
