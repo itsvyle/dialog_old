@@ -1,0 +1,5 @@
+language = "php"
+run = "php -S 0.0.0.0:8000 -t ."
+entrypoint = "index.php"
+
+hidden=["**/*.js","**/*.js.map","@types"]

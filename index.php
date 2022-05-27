@@ -1,5 +1,5 @@
 <?php
-	require_once "lib.php";
+	require_once $_SERVER['DOCUMENT_ROOT'] . "/lib.php";
 ?>
 <!DOCTYPE html>
 <html lang="en">
