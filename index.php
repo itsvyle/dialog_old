@@ -1,5 +1,7 @@
 <?php
 	require_once $_SERVER['DOCUMENT_ROOT'] . "/lib.php";
+    DataClient::init();
+    vdump(DataClient::SendSQLQuery('SELECT * FROM ' . '"DI_MEETINGS"')->fetch_all_rows());
 ?>
 <!DOCTYPE html>
 <html lang="en">

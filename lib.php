@@ -5,7 +5,20 @@ define("OAUTH_CLIENT_ID",getenv("OAUTH_CLIENT_ID"));
 define("OAUTH_SECRET",getenv("OAUTH_SECRET"));
 define("OAUTH_REDIRECT_URI","https://dialog.lfny.repl.co/login/google-redirect.php");
 
-// ========================================
+define("ROLE_STUDENT",0);
+define("ROLE_TEACHER",1);
+define("ROLE_ADMIN",2);
+
+// ============ DATABASE NAMES ===========
+define("DB_TEACHERS",'"DI_TEACHERS"');
+define("DB_TEACHERS_TYPES",[
+       "email" => "string",
+       "first_name" => "string",
+       "last_name" => "string",
+       "signup_limit" => "string",
+       "subject" => "string",
+       "room" => "string"
+]);
 
 
 // ======================================
@@ -116,9 +129,13 @@ class DataClientQueryResult {
     if ($this->res === false) {return null;}
     if ($this->rows_cache === null) {
       $this->rows_cache = pg_fetch_all($this->res,$mode);
-      if ($this->column_options) {
-        $this->rows_cache = array_map([$this,"mapRow"],$this->rows_cache);
-      }
+        if ($this->rows_cache === false) {
+            $this->rows_cache = [];
+        } else {
+            if ($this->column_options) {
+                $this->rows_cache = array_map([$this,"mapRow"],$this->rows_cache);
+              }
+        }
     }
     return $this->rows_cache;
   }
@@ -175,7 +192,42 @@ class Security {
                 "redirect_uri" => OAUTH_REDIRECT_URI
             ])
         ]);
+        if (!$r['status']) {
+            return [
+                "status" => 0,
+                "error" => $r['error']
+            ];
+        }
+        $dat = [
+            "email" => null,
+            "name" => null,
+            "picture" => null,
+            "role" => null
+        ];
+
         
+        $res = $r['body'];
+        if (isset($res['id_token'])) {
+            $payload = $res['id_token'];
+            $payload = explode(".",$payload)[1];
+            $payload = base64_decode($payload);
+            if (!($payload = json_decode($payload,true))) {
+                return [
+                "status" => 0,
+                "error" => "Unable to parse data for account"
+            ];
+            }
+            $dat["name"] = $payload['name'];
+            $dat['picture'] = $payload['picture'];
+            $dat['email'] = $payload['email'];
+        } else {
+            return [
+                "status" => 0,
+                "error" => "Unable to fetch data for account"
+            ];
+        }
+        
+        return [$r,$dat];
     }
     
 }
